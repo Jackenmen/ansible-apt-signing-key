@@ -1,0 +1,18 @@
+---
+- name: Checking if matching {{ key_name }} GPG key already exists
+  ansible.builtin.shell:
+    cmd: |-
+      [ -f {{ _full_path | quote }} ] || exit 1
+      gpg --list-keys --no-default-keyring --keyring {{ _full_path | quote }} {{ key_id or '' }} || exit 1
+      exit 0
+  register: should_download_gpg_key
+  failed_when: should_download_gpg_key.rc not in (0, 1)
+  changed_when: false
+
+- name: Adding {{ key_name }} GPG key
+  become: true
+  ansible.builtin.command:
+    stdin: "{{ lookup('ansible.builtin.url', url, split_lines=False) }}"
+    cmd:
+      gpg {{ '--dearmor' if dearmor else '' }} -o {{ _full_path | quote }}
+  when: should_download_gpg_key.rc != 0
