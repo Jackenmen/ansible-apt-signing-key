@@ -1,0 +1,29 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release_to_ansible_galaxy:
+    name: Release to Ansible Galaxy
+    environment: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install ansible
+      - name: Publish to Ansible Galaxy
+        env:
+          API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_BRANCH: ${{ github.ref }}
+        run: >-
+          ansible-galaxy role import --api-key "$API_KEY"
+          "$REPO_OWNER" "$REPO_NAME" --branch "${REPO_BRANCH#'refs/tags/'}"
