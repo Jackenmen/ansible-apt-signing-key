@@ -22,6 +22,8 @@
         stdin: "{{ lookup('ansible.builtin.file', _full_path) }}"
         argv:
           - gpg
+          # --yes is needed to successfully overwrite existing file with the same name
+          - --yes
           - --dearmor
           - -o
           - "{{ _full_path }}"
