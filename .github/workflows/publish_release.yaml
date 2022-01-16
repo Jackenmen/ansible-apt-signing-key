@@ -12,12 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-      - name: Install dependencies
+      - name: Install Ansible
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install ansible
+          sudo add-apt-repository -y ppa:ansible/ansible
+          sudo apt install -y ansible
       - name: Publish to Ansible Galaxy
         env:
           API_KEY: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
