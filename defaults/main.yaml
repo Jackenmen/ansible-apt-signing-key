@@ -6,6 +6,6 @@ key_name: "{{ undef(hint='You must specify GPG key target name') }}"
 # Location of archive keyrings.
 key_path: /usr/share/keyrings
 # GPG key ID.
-id: null
+key_id: null
 # Should the key from the URL be dearmored before saving.
 dearmor: false
