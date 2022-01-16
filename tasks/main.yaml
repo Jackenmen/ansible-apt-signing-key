@@ -20,7 +20,7 @@
     - name: Dearmor {{ key_name }} GPG key.
       ansible.builtin.command:
         stdin: "{{ lookup('ansible.builtin.file', _full_path) }}"
-        cmd:
+        argv:
           - gpg
           - --dearmor
           - -o
