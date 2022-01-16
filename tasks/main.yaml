@@ -31,4 +31,7 @@
       ansible.builtin.file:
         path: "{{ _full_path }}"
         state: absent
+    - name: Re-raise the error.
+      fail:
+        msg: "{{ ansible_failed_result }}"
   when: should_download_gpg_key.rc != 0
