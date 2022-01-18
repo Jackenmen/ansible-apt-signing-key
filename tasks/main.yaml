@@ -2,24 +2,30 @@
 - name: Check if matching {{ key_name }} GPG key already exists.
   ansible.builtin.shell:
     cmd: |-
-      [ -f {{ _full_path | quote }} ] || exit 1
-      gpg --list-keys --no-default-keyring --keyring {{ _full_path | quote }} {{ key_id or '' }} || exit 1
-      exit 0
+      [ -f {{ _full_path | quote }} ] || exit 2
+      gpg --list-keys --no-default-keyring --keyring {{ _full_path | quote }} {{ key_id or '' }}
+      exit $?
   register: should_download_gpg_key
-  failed_when: should_download_gpg_key.rc not in (0, 1)
+  failed_when: should_download_gpg_key.rc not in (0, 2)
   changed_when: false
 
 - name: Add {{ key_name }} GPG key.
   become: true
   block:
+    - name: Create temporary file for {{ key_name }}.
+      ansible.builtin.tempfile:
+        state: file
+      register: asc_tempfile
+      when: dearmor
+
     - name: Download {{ key_name }} GPG key.
       ansible.builtin.get_url:
         url: "{{ url }}"
-        dest: "{{ _full_path }}"
+        dest: "{{ asc_tempfile.path if dearmor else _full_path }}"
 
     - name: Dearmor {{ key_name }} GPG key.
       ansible.builtin.command:
-        stdin: "{{ lookup('ansible.builtin.file', _full_path) }}"
+        stdin: "{{ lookup('ansible.builtin.file', asc_tempfile.path) }}"
         argv:
           - gpg
           # --yes is needed to successfully overwrite existing file with the same name
@@ -28,12 +34,11 @@
           - -o
           - "{{ _full_path }}"
       when: dearmor
-  rescue:
-    - name: Remove {{ key_name }} GPG key.
+  always:
+    - name: Remove temporary file for {{ key_name }}.
       ansible.builtin.file:
-        path: "{{ _full_path }}"
+        path: "{{ asc_tempfile.path }}"
         state: absent
-    - name: Re-raise the error.
-      fail:
-        msg: "{{ ansible_failed_result }}"
+      when: dearmor
+
   when: should_download_gpg_key.rc != 0
