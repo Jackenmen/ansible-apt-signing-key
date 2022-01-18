@@ -10,7 +10,6 @@
   changed_when: false
 
 - name: Add {{ key_name }} GPG key.
-  become: true
   block:
     - name: Create temporary file for {{ key_name }}.
       ansible.builtin.tempfile:
@@ -24,6 +23,7 @@
         dest: "{{ asc_tempfile.path if dearmor else _full_path }}"
 
     - name: Dearmor {{ key_name }} GPG key.
+      become: true
       ansible.builtin.command:
         argv:
           - gpg
