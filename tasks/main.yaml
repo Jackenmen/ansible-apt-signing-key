@@ -14,13 +14,18 @@
     - name: Create temporary file for {{ key_name }}.
       ansible.builtin.tempfile:
         state: file
+      register: gpg_tempfile
+
+    - name: Create temporary file for armored {{ key_name }}.
+      ansible.builtin.tempfile:
+        state: file
       register: asc_tempfile
       when: dearmor
 
     - name: Download {{ key_name }} GPG key.
       ansible.builtin.get_url:
         url: "{{ url }}"
-        dest: "{{ asc_tempfile.path if dearmor else _full_path }}"
+        dest: "{{ asc_tempfile.path if dearmor else gpg_tempfile.path }}"
         # we want to write to the temporary file even though it already exists
         force: yes
 
@@ -29,18 +34,43 @@
       ansible.builtin.command:
         argv:
           - gpg
-          # --yes is needed to successfully overwrite existing file with the same name
+          # we want to write to the temporary file even though it already exists
           - --yes
           - -o
-          - "{{ _full_path }}"
+          - "{{ gpg_tempfile.path }}"
           - --dearmor
           - "{{ asc_tempfile.path }}"
       when: dearmor
+
+    - name: Verify the key ID/fingerprint of {{ key_name }} GPG key.
+      ansible.builtin.command:
+        argv:
+          - gpg
+          - --list-keys
+          - --no-default-keyring
+          - --keyring
+          - "{{ gpg_tempfile.path }}"
+          - "{{ key_id }}"
+      when: key_id
+
+    - name: Copy GPG key to {{ _full_path }}.
+      become: true
+      ansible.builtin.copy:
+        src: "{{ gpg_tempfile.path }}"
+        dest: "{{ _full_path }}"
+        owner: root
+        group: root
+        mode: u=rw,g=r,o=r
   always:
-    - name: Remove temporary file for {{ key_name }}.
+    - name: Remove temporary file for armored {{ key_name }}.
       ansible.builtin.file:
         path: "{{ asc_tempfile.path }}"
         state: absent
       when: dearmor
+
+    - name: Remove temporary file for {{ key_name }}.
+      ansible.builtin.file:
+        path: "{{ gpg_tempfile.path }}"
+        state: absent
 
   when: should_download_gpg_key.rc != 0

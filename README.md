@@ -20,7 +20,9 @@ The GPG key is stored under `{{ key_path }}/{{ key_name }}-archive-keyring.gpg` 
 - `url` (required) - GPG key URL.
 - `key_name` (required) - GPG key target name.
 - `key_path` - Location of archive keyrings. Defaults to the recommended `/usr/share/keyrings`.
-- `key_id` - GPG key ID. If provided, the role will redownload a key if it differs from the locally available one.
+- `key_id` - GPG key ID/fingerprint. If provided, the role will redownload a key
+  if it differs from the locally available one. Additionally, it will also be verified
+  after the key is downloaded.
 - `dearmor` - Should the key from the URL be dearmored before saving. Defaults to `false`.
 
 Dependencies
