@@ -25,14 +25,14 @@
 
     - name: Dearmor {{ key_name }} GPG key.
       ansible.builtin.command:
-        stdin: "{{ lookup('ansible.builtin.file', asc_tempfile.path) }}"
         argv:
           - gpg
           # --yes is needed to successfully overwrite existing file with the same name
           - --yes
-          - --dearmor
           - -o
           - "{{ _full_path }}"
+          - --dearmor
+          - "{{ asc_tempfile.path }}"
       when: dearmor
   always:
     - name: Remove temporary file for {{ key_name }}.
