@@ -27,7 +27,7 @@
         url: "{{ url }}"
         dest: "{{ asc_tempfile.path if dearmor else gpg_tempfile.path }}"
         # we want to write to the temporary file even though it already exists
-        force: yes
+        force: true
 
     - name: Dearmor {{ key_name }} GPG key.
       become: true
