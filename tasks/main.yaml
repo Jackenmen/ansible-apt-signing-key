@@ -21,6 +21,8 @@
       ansible.builtin.get_url:
         url: "{{ url }}"
         dest: "{{ asc_tempfile.path if dearmor else _full_path }}"
+        # we want to write to the temporary file even though it already exists
+        force: yes
 
     - name: Dearmor {{ key_name }} GPG key.
       become: true
