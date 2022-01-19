@@ -30,7 +30,6 @@
         force: true
 
     - name: Dearmor {{ key_name }} GPG key.
-      become: true
       ansible.builtin.command:
         argv:
           - gpg
