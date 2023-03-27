@@ -1,6 +1,6 @@
 galaxy_info:
   role_name: apt_signing_key
-  author: Jakub Kuczys (jack1142)
+  author: Jakub Kuczys (Jackenmen)
   description: >-
     This role allows downloading and adding GPG signing keys
     for third-party apt repositories per Debian's recommendations:
